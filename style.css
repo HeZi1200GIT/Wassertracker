@@ -35,3 +35,26 @@ button:focus-visible{outline:3px solid #2788db;outline-offset:2px}
 .diagnostics{margin-top:18px;border-top:1px solid #dce7ef;padding-top:8px}
 .diagnostics summary{min-height:44px;padding:12px 4px;cursor:pointer;font-weight:700;color:#34556d}
 .diagnostics summary:focus-visible{outline:3px solid #2788db;outline-offset:2px;border-radius:6px}
+/* 1.7: Datumsauswahl, Monatskalender und gerätespezifischer Wochenplan. */
+.date-panel>label{font-weight:700;font-size:14px}
+.date-navigation,.month-navigation{display:flex;align-items:center;gap:8px;margin:10px 0}
+.date-navigation input{min-width:0;flex:1;width:100%;font:inherit;border:1px solid #b9ccdb;border-radius:10px;padding:10px;color:#18314b;background:#fff;min-height:44px}
+.date-navigation button,.month-navigation button,#back-today,#current-month{font:inherit;border:1px solid #b9ccdb;border-radius:10px;min-height:44px;padding:8px 12px;background:#eaf5ff;color:#1269b0;cursor:pointer}
+.date-navigation button,.month-navigation button{min-width:44px;flex:none;font-size:23px}
+.month-navigation h2{flex:1;text-align:center;margin:0;font-size:18px}
+.calendar-weekdays,.month-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.calendar-weekdays{margin:18px 0 8px;text-align:center;font-size:12px;color:#687d8f}
+.calendar-day{min-width:0;min-height:62px;padding:8px 1px;border:1px solid #dce7ef;border-radius:10px;background:#f4f9fd;color:#28516f;cursor:pointer}
+.calendar-day strong,.calendar-day small{display:block}.calendar-day small{font-size:10px;margin-top:5px}
+.calendar-day.achieved{background:#fff4d5;border-color:#e8bf59;color:#77520e}.calendar-day.today{outline:2px solid #1677c8;outline-offset:-2px}
+.calendar-day:disabled{opacity:.45;cursor:default}.month-calendar{margin-bottom:18px}
+.weekly-settings{border:1px solid #dce7ef;border-radius:12px;padding:12px;margin:6px 0;min-width:0}
+.weekly-settings legend{font-weight:700;font-size:15px;padding:0 5px}
+#settings-view input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:#1677c8}
+#settings-view .check-label,.weekday-row>label{display:flex;align-items:center;gap:8px;min-height:44px}
+.weekday-row{display:grid;grid-template-columns:minmax(0,1fr) 80px 80px;gap:6px;align-items:center;border-top:1px solid #edf2f6;padding:7px 0}
+#settings-view .weekday-row select{font-size:14px;padding:9px 3px;min-height:44px}
+#settings-view .weekday-row label{font-size:13px}
+button:disabled{cursor:default}
+@media(max-width:360px){.weekly-settings{padding:8px}.weekday-row{grid-template-columns:minmax(0,1fr) 64px 64px;gap:3px}#settings-view .weekday-row label{font-size:12px}.calendar-day{min-height:58px}.calendar-day small{font-size:9px}}
+nav button{min-width:0}

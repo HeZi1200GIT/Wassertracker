@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon-1.5.4.png" sizes="180x180">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg?v=1.6" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=1.6.3">
+<link rel="stylesheet" href="style.css?v=1.7">
 <title>WasserTracker</title>
 </head>
 <body>
@@ -24,7 +24,8 @@
 </header>
 <nav aria-label="Bereiche">
 <button id="tab-day" class="active" type="button">Heute</button>
-<button id="tab-week" type="button">Wochenstatistik</button>
+<button id="tab-week" type="button">Woche</button>
+<button id="tab-month" type="button">Monat</button>
 </nav>
 <section id="settings-view" hidden>
 <button id="settings-close" type="button">← Zur Tagesübersicht</button>
@@ -69,6 +70,10 @@
 <label for="timezone">Zeitzone der Erinnerungen</label>
 <input id="timezone" type="text" value="Europe/Berlin" required autocomplete="off">
 <p class="hint">Zum Beispiel Europe/Berlin. Bei 08–20 Uhr erinnern wir nach der abgeschlossenen Stunde von 09:00 bis einschließlich 20:00 Uhr.</p>
+<fieldset class="weekly-settings"><legend>Erinnerungen nach Wochentag</legend>
+<label class="check-label"><input id="weekly-enabled" type="checkbox"> Eigene Zeiten je Wochentag</label>
+<p class="hint">Ohne Wochenplan gilt dein bisheriger Zeitraum täglich. Ausgeschaltete Tage erhalten keine automatischen Erinnerungen. Beginn exklusiv, Ende inklusive: 08–20 Uhr erinnert von 09–20 Uhr. Die Trinkübersicht verwendet weiter den allgemeinen Zeitraum.</p>
+<div id="weekday-fields" hidden></div></fieldset>
 <button type="submit">Einstellungen speichern</button>
 </form>
 <p id="settings-message" role="status">
@@ -90,6 +95,9 @@
 </div>
 </section>
 <section id="day-view">
+<div class="panel date-panel"><label for="entry-date">Tag auswählen oder nachtragen</label>
+<div class="date-navigation"><button id="previous-day" type="button" aria-label="Vorheriger Tag">‹</button><input id="entry-date" type="date" required><button id="next-day" type="button" aria-label="Nächster Tag">›</button></div>
+<button id="back-today" type="button" hidden>Zurück zu heute</button><p id="entry-message" role="status"></p></div>
 <div class="panel">
 <div class="section-head">
 <h2 id="date-title">
@@ -149,9 +157,19 @@
 <p class="hint">Offene Stunden werden nicht als „Nein“ gezählt.</p>
 </div>
 </section>
-<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.6.3 · Bestehende Daten bleiben erhalten. <span id="code-version">Programmcode noch nicht bereit.</span></footer>
+<section id="month-view" hidden><div class="panel">
+<div class="month-navigation"><button id="previous-month" type="button" aria-label="Vorheriger Monat">‹</button><h2 id="month-title"></h2><button id="next-month" type="button" aria-label="Nächster Monat">›</button></div>
+<button id="current-month" type="button">Aktueller Monat</button>
+<p class="hint">Tippe auf einen vergangenen Tag, um Antworten nachzutragen. ★ bedeutet Tagesziel erreicht. Zukünftige Tage zählen nicht zur Bilanz.</p>
+<div class="calendar-weekdays" aria-hidden="true"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+<div id="month-calendar" class="month-calendar" aria-label="Tage des gewählten Monats"></div>
+<p id="month-goals" class="medal-summary"></p>
+<div class="stats"><div><strong id="month-yes">0</strong><span>Ja</span></div><div><strong id="month-no">0</strong><span>Nein</span></div><div><strong id="month-open">0</strong><span>Offen</span></div></div>
+<p class="hint">Wie die Wochenstatistik bewertet die Monatsübersicht Antworten mit deinem aktuellen allgemeinen Zeitraum, deiner aktuellen Mindestmenge und deinem Tagesziel. Offene Stunden werden nicht als Nein gezählt.</p>
+</div></section>
+<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.7 · Bestehende Daten bleiben erhalten. <span id="code-version">Programmcode noch nicht bereit.</span></footer>
 </main>
-<script src="app.js?v=1.6.3" defer>
+<script src="app.js?v=1.7" defer>
 </script>
 </body>
 </html>
