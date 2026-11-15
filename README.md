@@ -1,54 +1,71 @@
-# WasserTracker – erste PWA-Version
+# WasserTracker 1.5
 
-## Funktionen
-- 12 Stundenabschnitte 08:00–09:00 bis 19:00–20:00
-- Pro Abschnitt „Ja“ (= mindestens 200 ml) oder „Nein“ (= weniger als 200 ml)
-- Erneutes Tippen auf die ausgewählte Antwort setzt sie auf „Offen“ zurück
-- Tagesfortschritt und Statistik der letzten sieben Kalendertage
-- Speicherung im lokalen Browser-Speicher; offline nutzbar nach erstmaligem Laden über HTTP(S)
+Weiterentwicklung der vorhandenen PWA: Tagesübersicht, Ja/Nein-Antworten, Tagesziel, Wochenstatistik und Medaillen bleiben erhalten. Einstellungen öffnen über das Zahnrad oben rechts. Ein weiterer Tipp auf das Zahnrad oder „Zur Tagesübersicht“ schließt sie.
 
-**Noch nicht enthalten:** automatische Erinnerungen, Push-Nachrichten, Cloud-Synchronisierung oder genaue Trinkmengen. Die 12 Zeitfenster sind die Bezugsstunden, keine bereits implementierten Benachrichtigungen.
+## Bestehende Daten behalten
 
-## Unter Windows starten
-1. ZIP entpacken.
-2. Python installieren, falls noch nicht vorhanden.
-3. Im entpackten Ordner `WasserTracker` ein Terminal öffnen.
-4. `python -m http.server 8000` ausführen (alternativ `py -m http.server 8000`).
-5. Im Browser `http://localhost:8000` öffnen.
+Beim Update **dieselbe GitHub-Pages-Adresse, denselben Repository-Pfad und dieselbe iPhone-Installation verwenden**. Die App nicht entfernen und Safari-/Websitedaten nicht löschen. Keine neue Installation zum Ersetzen der alten anlegen. Daten anderer Geräte oder Browser werden nicht automatisch übernommen.
 
-Für einen schnellen Test funktioniert auch ein Doppelklick auf `index.html`; die PWA-/Offline-Funktionen brauchen aber HTTP(S).
+Diese Schlüssel und das Trinkdatenformat bleiben unverändert:
+- `wassertracker-v1`: alle bisherigen Trinkdaten; keine Migration und kein Upload.
+- `wassertracker-settings-v2`: persönliche Einstellungen dieser Installation.
+- `wassertracker-device-v2`: Gerätekennung und Zugriffstoken dieser Installation.
 
-## Auf dem iPhone installieren
-Die App muss auf einer **HTTPS-Webadresse** bereitgestellt werden (z. B. über einen geeigneten statischen Hostingdienst). Eine nur auf dem Windows-PC unter `localhost` laufende Seite ist auf dem iPhone nicht erreichbar. Öffne die HTTPS-Adresse in Safari, tippe auf Teilen und wähle „Zum Home-Bildschirm“ (ggf. „Als Web-App öffnen“).
+Neu ist lediglich `wassertracker-push-v1` als lokaler Hinweis auf die zuletzt erfolgreiche Push-Registrierung. Er enthält kein Geräte-Zugriffstoken. Offline-Caches werden aktualisiert; Local Storage wird dabei nicht gelöscht. Ein Update schützt nicht vor dem Löschen von Browserdaten durch Benutzer oder Betriebssystem.
 
-**Achtung:** Die Daten liegen nur im Speicher der jeweiligen Browser-/App-Installation. Das iPhone übernimmt keine Einträge vom Windows-PC. Browserdaten löschen oder die App entfernen kann die Einträge löschen. Keine sensiblen Daten eingeben.
+## Auf GitHub Pages aktualisieren
 
-## Projektdateien
-`index.html` Oberfläche; `style.css` Gestaltung; `app.js` Logik und Speicherung; `manifest.webmanifest` Installation; `sw.js` Offline-Cache; `icon-*.png` App-Symbole.
+1. `WasserTracker-1.5.zip` auf dem PC entpacken.
+2. Auf GitHub das **bisherige** WasserTracker-Repository öffnen.
+3. **Add file → Upload files** wählen. Die Dateien aus dem entpackten Ordner hochladen: `index.html`, `app.js`, `style.css`, `sw.js`, `manifest.webmanifest`, `icon.svg`, `icon-192.png`, `icon-512.png`. Sie müssen dieselben Dateien im bisherigen Veröffentlichungsordner ersetzen. Nicht den ZIP-Ordner als neuen Unterordner hochladen.
+4. Mit **Commit changes** speichern. Die vorhandene Pages-Konfiguration beibehalten und die erfolgreiche Veröffentlichung abwarten.
+5. Auf dem iPhone die **bestehende** WasserTracker-App öffnen. Bei Internetverbindung schließen und erneut öffnen, falls noch die alte Ansicht erscheint. Keine Websitedaten löschen.
+6. Unten muss „Version 1.5“ stehen. Danach die beigefügte `IPHONE-TEST.md` abarbeiten.
 
-## Neu in Version 1.1: Tagesziel 1,5 Liter
+Keine Einladungscodes oder Zugriffstoken ins Repository schreiben. Die ZIP enthält nur Programmdateien, Tests und Anleitungen, keine persönlichen Browserdaten.
 
-Die Tagesübersicht zeigt den Fortschritt bis zum Tagesziel. Nach acht Ja-Antworten erscheint eine Erfolgsmeldung. Jede Ja-Antwort bestätigt **mindestens** 200 ml; acht Antworten bedeuten daher **mindestens 1,6 Liter** und belegen das Erreichen des 1,5-Liter-Ziels. Sieben Ja-Antworten (mindestens 1,4 Liter) genügen dafür nicht sicher. Die Wochenstatistik markiert erreichte Tagesziele mit ★. Antworten können weiterhin korrigiert werden; bei weniger als acht Ja-Antworten verschwindet die Erfolgsmeldung wieder. Bereits gespeicherte Daten bleiben erhalten.
+## Geräte und Einstellungen
 
-## Neu in Version 1.2: Tagesmedaillen
-In der Wochenstatistik wird jeder der letzten sieben Tage mit einer goldenen Medaille ausgezeichnet, sobald mindestens acht Ja-Antworten erfasst sind. Daneben zeigt die App die Zahl der erfolgreichen Tage der letzten sieben Kalendertage. Nachträgliche Korrekturen aktualisieren die Auszeichnungen automatisch.
+Henning bleibt mit seinem vorhandenen Token angemeldet. Franka meldet später ihr eigenes iPhone mit ihrem Einladungscode an. Es gibt keine gemeinsame Anmeldung. Der Worker ordnet Einstellungen und Abonnements dem Bearer-Token zu. Die App speichert weiterhin Beginn, Ende, Mindestmenge, Tagesziel und Benachrichtigungsstatus. Die Übernahme unvollständiger Serverantworten löscht keine vorhandenen Einstellungswerte.
 
-## Kostenlos mit GitHub Pages auf dem iPhone bereitstellen
-1. Erstelle auf github.com ein kostenloses Konto (falls nicht vorhanden).
-2. Erstelle über **New repository** ein neues **öffentliches** Repository, z. B. `wassertracker`. Öffentliche Repositories und Pages-Webseiten sind öffentlich einsehbar. Keine privaten Trinkdaten hochladen; diese liegen ohnehin nur lokal im Browser.
-3. Klicke im Repository auf **Add file → Upload files**. Lade **alle Dateien aus dem entpackten WasserTracker-Ordner direkt ins Hauptverzeichnis** hoch (nicht den Ordner selbst und nicht die ZIP-Datei). Bestätige mit **Commit changes**.
-4. Gehe zu **Settings → Pages**. Wähle unter **Build and deployment** die Quelle **Deploy from a branch**, dann Branch **main**, Ordner **/(root)**, und speichere.
-5. Nach Veröffentlichung zeigt GitHub Pages eine Adresse nach dem Muster `https://DEINNAME.github.io/wassertracker/`. Die tatsächliche Adresse findest du unter **Settings → Pages**. Die Veröffentlichung kann einige Minuten dauern.
-6. Öffne diese Adresse auf dem iPhone in **Safari**. Tippe auf **Teilen** und dann **Zum Home-Bildschirm** (gegebenenfalls unter weiteren Aktionen). Aktiviere, falls angeboten, **Als Web-App öffnen**, und tippe auf **Hinzufügen**.
-7. Starte WasserTracker über das neue Home-Bildschirm-Symbol. Beim ersten Aufruf ist Internet erforderlich, danach können bereits zwischengespeicherte App-Dateien offline funktionieren.
+Das Token bleibt für die bestehende Anmeldung im Local Storage; dies ist kein verschlüsselter iOS-Schlüsselspeicher. Keine fremden Skripte einbinden. Es wird ausschließlich im Authorization-Header an den konfigurierten HTTPS-Worker gesendet, niemals in URLs. Einladungscodes werden nicht dauerhaft gespeichert.
 
-**Wichtig:** Diese Version sendet keine automatischen stündlichen Erinnerungen. Die Ja/Nein-Eingaben erfolgen manuell. Daten werden nur lokal auf dem jeweiligen Gerät gespeichert und nicht zwischen Windows und iPhone synchronisiert. Entfernen der App oder Löschen der Websitedaten kann die Einträge löschen.
+## Push: umgesetzt und noch offen
 
+Umgesetzt sind Voraussetzungenprüfung, Berechtigungsabfrage ausschließlich nach Tastendruck, Service-Worker-Registrierung, dynamischer VAPID-Schlüssel, Erstellen oder Wiederverwenden eines Abonnements und Übertragung an den Worker. Empfangene Nachrichten zeigt der Service Worker an; Antippen öffnet die App oder bringt ein vorhandenes Fenster nach vorn. Die Oberfläche unterscheidet Freigabe, Registrierung und Fehler.
 
-## Version 1.4: Geräteanmeldung
+„Benachrichtigungen deaktivieren“ speichert `notificationsEnabled:false` am Worker. Das Abonnement bleibt dort gespeichert. Ein späterer Versand muss diesen Schalter berücksichtigen. Die App erfindet keinen Lösch-Endpunkt. Eine Betriebssystem-Sperre ist zusätzlich unter iPhone-Einstellungen → Mitteilungen → WasserTracker möglich.
 
-Im Tab **Einstellungen** können sich Henning und Franka mit dem Einladungscode auf ihren jeweiligen iPhones registrieren. Die API ist `https://wassertracker-push.henning-zimmer.workers.dev`. Der Code wird nicht im Frontend gespeichert; das erhaltene Geräte-Zugriffstoken liegt im lokalen Browser-Speicher. Die bestehenden Trinkdaten bleiben unter `wassertracker-v1` erhalten und werden nicht zum Server übertragen. Einstellungen werden nach erfolgreicher Anmeldung über `/settings` gespeichert.
+**Ein registriertes Abonnement bedeutet noch keinen automatischen Versand.** Im Worker fehlen laut Entwicklungsauftrag:
 
-**Noch nicht enthalten:** Web-Push-Abonnement, Zeitplan und Versand von Benachrichtigungen. Die Einstellung `notifications_enabled` wird in dieser Version nicht aktiviert.
+1. Web-Push-Verschlüsselung der Nutzlast.
+2. VAPID-Signierung und tatsächlicher Versand an den Push-Dienst, einschließlich Apple.
+3. Cloudflare-Cron-Ausführung oder ein anderer zuverlässiger serverseitiger Zeitplan.
+4. Individuelle Zeitfenster und Zeitzonen einschließlich Sommer-/Winterzeit. Der aktuelle Einstellungsvertrag enthält noch kein Zeitzonenfeld.
+5. Entfernen ungültiger Abonnements, etwa nach HTTP 404/410 des Push-Dienstes.
+6. Ein authentifizierter Endpunkt zum sicheren Entfernen eines Abonnements.
 
-**Wichtig:** Ein Gerätename kann serverseitig nur einmal registriert werden. Bei Neuinstallation oder Verlust des lokalen Speichers ist eine kontrollierte Wiederherstellung bzw. Zurücksetzung nötig. Der aktuelle Worker benötigt zusätzlich Schutz gegen wiederholte Einladungscode-Versuche.
+Es gibt keine lokalen JavaScript-Erinnerungstimer. Es wurde keine Push-Zustellung auf ein gesperrtes oder geschlossenes iPhone getestet oder bestätigt.
+
+## Worker-Vertrag und tatsächliche Prüfung
+
+API: `https://wassertracker-push.henning-zimmer.workers.dev`
+
+- `POST /register`: `{name,inviteCode}`; Antwort muss `deviceId`, `deviceName`, `token` enthalten. Bestehende Anmeldung wird nicht erneuert.
+- `GET /settings`, `POST /settings`: Bearer-Token. POST überträgt camelCase-Felder wie im Auftrag. GET akzeptiert camelCase oder das bisherige snake_case, in `settings` oder direkt im Antwortobjekt. Nur gültige vorhandene Werte werden übernommen.
+- `GET /push/public-key`: dynamisch `{publicKey}`.
+- `POST /push/subscribe`: Bearer-Token; direkt `{endpoint,keys:{p256dh,auth}}` aus dem Browser-Abonnement, gegebenenfalls mit standardmäßigem `expirationTime`.
+
+Am 15.11.2026 tatsächlich geprüft: öffentlicher Schlüssel liefert HTTP 200 und `{publicKey}`. GET `/settings` und POST `/push/subscribe` liefern ohne Token HTTP 401 mit `{"error":"Nicht autorisiert"}`. Es wurden keine produktiven Geräte angelegt oder verändert. Authentifizierte Serverantworten konnten ohne Zugriff auf das bestehende iPhone-Token nicht live geprüft werden; ihre Abläufe wurden mit simulierten Antworten getestet.
+
+Beobachtete CORS-Freigabe: **`https://hezi1200git.github.io`**. Hosting auf einer anderen Domain oder localhost benötigt eine entsprechende Worker-Freigabe. Ein erfolgreicher Terminalabruf allein beweist keine CORS-Funktion im Browser.
+
+## Prüfungen
+
+Mit Node.js: `node --check app.js`, `node --check sw.js`, `node --test tests/regression.cjs`.
+
+Acht automatisierte Prüfungen bestanden: unveränderte alte Einträge/Anmeldung, ungültige Serverzeitfenster, Push-Standardnachricht, Zahnrad öffnen/schließen, camelCase-Einstellungen, VAPID-Umwandlung und authentifizierter Abonnement-/Deaktivierungsablauf, verweigerte Berechtigung und HTML-ID-/Tag-Struktur.
+
+Die CSS-Regeln berücksichtigen 320-Pixel-Breite, umbrechende Überschriften und getrennte Statistikspalten. Die tatsächliche visuelle Browserprüfung wurde durch einen Timeout zum lokalen Testserver blockiert; eine Safari-/iPhone-Prüfung ist noch erforderlich. Ein vollständiger Offline-/Update-Test auf dem iPhone steht ebenfalls aus. Siehe `IPHONE-TEST.md`.
+
+iPhone-Voraussetzungen: HTTPS, iOS 16.4 oder neuer, Start über den Home-Bildschirm. Quelle: [Apple/WebKit](https://webkit.org/blog/13878/).

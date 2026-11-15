@@ -42,15 +42,92 @@ function renderWeek() {
  $('medal-summary').textContent=`${medals} von 7 Tagen mit erreichtem Tagesziel`;$('week-yes').textContent=yes;$('week-no').textContent=no;$('week-open').textContent=open;
 }
 function render(){renderDay();renderWeek();}
-function tab(name){for(const n of ['day','week','settings']){$(`${n}-view`).hidden=n!==name;$(`tab-${n}`).classList.toggle('active',n===name);}}
-for(const n of ['day','week','settings']) $(`tab-${n}`).addEventListener('click',()=>tab(n));
-function renderAccount(){$('account-state').textContent=auth.token?`Angemeldet als ${auth.deviceName}. Die Anmeldung ist auf diesem Gerät gespeichert.`:'Noch nicht angemeldet. Wähle dein Gerät und gib den Einladungscode ein.';$('register-form').hidden=!!auth.token;}
+function tab(name){$('tab-settings').setAttribute('aria-expanded',String(name==='settings'));for(const n of ['day','week','settings']){$(`${n}-view`).hidden=n!==name;$(`tab-${n}`).classList.toggle('active',n===name);}}
+for(const n of ['day','week']) $(`tab-${n}`).addEventListener('click',()=>tab(n));
+$('tab-settings').addEventListener('click',()=>tab($('settings-view').hidden?'settings':'day'));
+$('settings-close').addEventListener('click',()=>tab('day'));
+function renderAccount(){$('account-state').textContent=auth.token?`Angemeldet als ${auth.deviceName}. Die Anmeldung ist auf diesem Gerät gespeichert.`:'Noch nicht angemeldet. Wähle dein Gerät und gib den Einladungscode ein.';$('register-form').hidden=!!auth.token;refreshPushStatus();}
 function fillSettings(){for(const [id,key] of [['start-hour','startHour'],['end-hour','endHour'],['minimum-ml','minimumMl'],['daily-goal','dailyGoalMl']]) $(id).value=settings[key];}
 for(let h=0;h<=23;h++){for(const id of ['start-hour','end-hour']){const o=document.createElement('option');o.value=String(h);o.textContent=formatHour(h);$(id).append(o);}}
-async function api(path,options={}){const response=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(auth.token?{'Authorization':`Bearer ${auth.token}`}:{})}});let data;try{data=await response.json();}catch{throw new Error(`Serverantwort ${response.status}`);}if(!response.ok)throw new Error(data.error||`Fehler ${response.status}`);return data;}
-$('register-form').addEventListener('submit',async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('button');btn.disabled=true;$('register-message').textContent='Anmeldung läuft …';try{const result=await api('/register',{method:'POST',body:JSON.stringify({name:$('device-name').value,inviteCode:$('invite-code').value})});auth={deviceId:result.deviceId,deviceName:result.deviceName,token:result.token};localStorage.setItem(AUTH_KEY,JSON.stringify(auth));$('invite-code').value='';renderAccount();$('register-message').textContent='Anmeldung erfolgreich.';await loadRemoteSettings();}catch(err){$('register-message').textContent=`Anmeldung fehlgeschlagen: ${err.message}`;}finally{btn.disabled=false;}});
-async function loadRemoteSettings(){if(!auth.token)return;try{const result=await api('/settings');if(result.settings){const s=result.settings;settings={...settings,startHour:s.start_hour,endHour:s.end_hour,minimumMl:s.minimum_ml,dailyGoalMl:s.daily_goal_ml,notificationsEnabled:!!s.notifications_enabled};localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));fillSettings();render();}}catch(err){$('settings-message').textContent=`Servereinstellungen konnten nicht geladen werden: ${err.message}`;}}
+async function api(path,options={}){const response=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(auth.token?{'Authorization':`Bearer ${auth.token}`}:{})}});let data;try{data=await response.json();}catch{throw new Error(`Serverantwort ${response.status}`);}if(!data||typeof data!=='object')throw new Error('Ungültige Serverantwort.');if(!response.ok || data.success===false)throw new Error(data.error||`Fehler ${response.status}`);return data;}
+$('register-form').addEventListener('submit',async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('button');btn.disabled=true;$('register-message').textContent='Anmeldung läuft …';try{const result=await api('/register',{method:'POST',body:JSON.stringify({name:$('device-name').value,inviteCode:$('invite-code').value})});if(!result.deviceId||!result.deviceName||!result.token)throw new Error('Unvollständige Geräteanmeldung vom Server.');const nextAuth={deviceId:result.deviceId,deviceName:result.deviceName,token:result.token};localStorage.setItem(AUTH_KEY,JSON.stringify(nextAuth));auth=nextAuth;$('invite-code').value='';renderAccount();$('register-message').textContent='Anmeldung erfolgreich.';await loadRemoteSettings();}catch(err){$('register-message').textContent=`Anmeldung fehlgeschlagen: ${err.message}`;}finally{btn.disabled=false;}});
+async function loadRemoteSettings(){if(!auth.token)return;try{const result=await api('/settings');if(result.settings || result.startHour !== undefined || result.start_hour !== undefined){const s=result.settings || result;const next={...settings};for(const [remote,local,min,max] of [['start_hour','startHour',0,23],['end_hour','endHour',1,23],['minimum_ml','minimumMl',50,1000],['daily_goal_ml','dailyGoalMl',200,5000]]){const value=s[local] ?? s[remote];if(Number.isInteger(value)&&value>=min&&value<=max)next[local]=value;}if(next.startHour>=next.endHour){next.startHour=settings.startHour;next.endHour=settings.endHour;}const enabled=s.notificationsEnabled ?? s.notifications_enabled;if(typeof enabled==='boolean'||enabled===0||enabled===1)next.notificationsEnabled=!!enabled;settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));fillSettings();render();refreshPushStatus();}}catch(err){$('settings-message').textContent=`Servereinstellungen konnten nicht geladen werden: ${err.message}`;}}
 $('settings-form').addEventListener('submit',async e=>{e.preventDefault();const next={...settings,startHour:Number($('start-hour').value),endHour:Number($('end-hour').value),minimumMl:Number($('minimum-ml').value),dailyGoalMl:Number($('daily-goal').value)};if(next.startHour>=next.endHour){$('settings-message').textContent='Der Beginn muss vor dem Ende liegen.';return;}if(next.minimumMl<50||next.minimumMl>1000||next.dailyGoalMl<200||next.dailyGoalMl>5000){$('settings-message').textContent='Bitte gültige Mengen eingeben.';return;}if(!auth.token){$('settings-message').textContent='Bitte zuerst dieses iPhone anmelden.';return;}try{await api('/settings',{method:'POST',body:JSON.stringify(next)});settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));render();$('settings-message').textContent='Einstellungen gespeichert.';}catch(err){$('settings-message').textContent=`Speichern fehlgeschlagen: ${err.message}`;}});
+
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){render();refreshPushStatus();}});
+
+
+// Push-Abonnement und Serverversand sind getrennte Zustände. Keine lokalen Erinnerungstimer.
+let pushBusy=false;
+const PUSH_KEY='wassertracker-push-v1';
+let workerPromise;
+function pushProblem(){
+ if(!window.isSecureContext)return 'Benachrichtigungen benötigen HTTPS (für PC-Tests auch localhost).';
+ const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)|| (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(ios && !(navigator.standalone || window.matchMedia('(display-mode: standalone)').matches))return 'Bitte in Safari über Teilen → Zum Home-Bildschirm hinzufügen und WasserTracker über das neue Symbol öffnen.';
+ if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))return 'Web-Push wird hier nicht unterstützt. Auf dem iPhone wird iOS 16.4 oder neuer benötigt.';
+ return '';
+}
+function ensureWorker(){
+ if(!workerPromise)workerPromise=(async()=>{
+  await navigator.serviceWorker.register('./sw.js');
+  let timer;
+  try{return await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Service Worker nicht bereit. Bitte App online neu öffnen.')),15000);})]);}
+  finally{clearTimeout(timer);}
+ })().catch(error=>{workerPromise=undefined;throw error;});
+ return workerPromise;
+}
+function vapidBytes(key){
+ if(typeof key!=='string'||!key)throw new Error('Der Worker liefert keinen öffentlichen VAPID-Schlüssel.');
+ const base64=key.replace(/-/g,'+').replace(/_/g,'/');
+ const bytes=Uint8Array.from(atob(base64+'='.repeat((4-base64.length%4)%4)),c=>c.charCodeAt(0));
+ if(bytes.length!==65||bytes[0]!==4)throw new Error('Der öffentliche VAPID-Schlüssel ist ungültig.');
+ return bytes;
+}
+function refreshPushStatus(message){
+ const problem=pushProblem();
+ $('push-enable').disabled=pushBusy||!!problem||!auth.token;
+ $('push-disable').disabled=pushBusy||!auth.token||!settings.notificationsEnabled;
+ if(message){$('push-message').textContent=message;return;}
+ if(problem){$('push-message').textContent=problem;return;}
+ if(!auth.token){$('push-message').textContent='Bitte zuerst dieses Gerät anmelden.';return;}
+ if(Notification.permission==='denied'){$('push-message').textContent='Benachrichtigungen sind blockiert. Öffne die iPhone-Einstellungen → Mitteilungen → WasserTracker und erlaube Mitteilungen. Danach die App erneut öffnen.';return;}
+ const saved=readObject(PUSH_KEY);
+ $('push-message').textContent=Notification.permission!=='granted'?'Benachrichtigungen noch nicht aktiviert.':saved.deviceId===auth.deviceId&&saved.registered&&settings.notificationsEnabled?'Push-Abonnement erfolgreich beim Worker registriert. Automatischer Erinnerungsversand ist serverseitig noch nicht eingerichtet.':settings.notificationsEnabled?'Berechtigung erteilt. Bitte das Push-Abonnement über die Schaltfläche beim Worker registrieren.':'Benachrichtigungen deaktiviert beziehungsweise noch nicht beim Worker aktiviert.';
+}
+$('push-enable').addEventListener('click',async()=>{
+ if(pushBusy)return;
+ const problem=pushProblem();if(problem||!auth.token){refreshPushStatus(problem||'Bitte zuerst dieses Gerät anmelden.');return;}
+ pushBusy=true;
+ try{
+  // Vor dem ersten await direkt auf den Fingertipp reagieren (iOS-Berechtigungsregel).
+  const permission=await Notification.requestPermission();
+  if(permission!=='granted')throw new Error(permission==='denied'?'Berechtigung verweigert. In iPhone-Einstellungen → Mitteilungen → WasserTracker erlauben.':'Die Freigabe wurde nicht erteilt. Du kannst es erneut versuchen.');
+  refreshPushStatus('Berechtigung erteilt. Push-Abonnement wird registriert …');
+  const registration=await ensureWorker();
+  const result=await api('/push/public-key');
+  const key=vapidBytes(result.publicKey);
+  let subscription=await registration.pushManager.getSubscription();
+  if(!subscription)subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:key});
+  await api('/push/subscribe',{method:'POST',body:JSON.stringify(subscription.toJSON())});
+  const next={...settings,notificationsEnabled:true};
+  await api('/settings',{method:'POST',body:JSON.stringify(next)});
+  settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+  localStorage.setItem(PUSH_KEY,JSON.stringify({deviceId:auth.deviceId,registered:true}));
+  refreshPushStatus('Push-Abonnement erfolgreich registriert. Automatischer Erinnerungsversand ist serverseitig noch nicht eingerichtet.');
+ }catch(error){refreshPushStatus('Registrierung fehlgeschlagen: '+error.message);}
+ finally{pushBusy=false;refreshPushStatus($('push-message').textContent);}
+});
+$('push-disable').addEventListener('click',async()=>{
+ if(pushBusy||!auth.token)return;
+ pushBusy=true;refreshPushStatus('Benachrichtigungen werden deaktiviert …');
+ try{
+  const next={...settings,notificationsEnabled:false};
+  await api('/settings',{method:'POST',body:JSON.stringify(next)});
+  settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
+  refreshPushStatus('Benachrichtigungen in deinen Geräteeinstellungen deaktiviert. Das Abonnement bleibt gespeichert, bis der Worker eine sichere Abmeldung unterstützt.');
+ }catch(error){refreshPushStatus('Deaktivieren fehlgeschlagen: '+error.message);}
+ finally{pushBusy=false;refreshPushStatus($('push-message').textContent);}
+});
 fillSettings();renderAccount();render();loadRemoteSettings();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)render();});
-if('serviceWorker' in navigator && location.protocol!=='file:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(console.warn));
+if('serviceWorker' in navigator && window.isSecureContext)ensureWorker().catch(error=>refreshPushStatus('Offline-/Push-Vorbereitung fehlgeschlagen: '+error.message));

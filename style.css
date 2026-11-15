@@ -5,3 +5,22 @@
 .medal-summary{font-weight:700;color:#72511b;margin:0 0 15px}.medal-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}.medal-day{min-width:0;text-align:center;border:1px solid #e0e8ef;background:#f4f7fa;border-radius:12px;padding:12px 2px;color:#7a8794}.medal-day.achieved{background:#fff4d5;border-color:#e8bf59;color:#77520e}.medal-symbol{display:block;font-size:25px;line-height:1.3}.medal-day small{display:block;margin-top:5px;font-size:11px;font-weight:700}.medal-day.achieved .medal-symbol{filter:drop-shadow(0 2px 2px #c78a4044)}
 
 #settings-view form{display:grid;gap:10px;margin-top:14px}#settings-view label{font-weight:700;font-size:14px}#settings-view input,#settings-view select{font:inherit;width:100%;box-sizing:border-box;border:1px solid #b9ccdb;border-radius:10px;padding:11px;background:white;color:#17354c}#settings-view form button{border:0;border-radius:12px;padding:13px;background:#1677c8;color:white;font:inherit;font-weight:700}#settings-view form button:disabled{opacity:.55}#settings-view [role=status]{overflow-wrap:anywhere}nav{display:flex;flex-wrap:wrap;gap:5px}nav button{flex:1;min-width:95px}#settings-view form[hidden]{display:none}
+
+/* 1.5: Einstellungen im Header; ausreichend Platz für Statistik und kleine iPhones. */
+[hidden]{display:none!important}
+.app{padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(30px,env(safe-area-inset-bottom))}
+header>div:nth-child(2){flex:1;min-width:0}
+.settings-toggle{flex:none;align-self:flex-start;width:46px;height:46px;border:1px solid #b9ccdb;border-radius:13px;background:white;color:#1269b0;font-size:28px;cursor:pointer}
+.settings-toggle.active{background:#d9edff}
+button:focus-visible{outline:3px solid #2788db;outline-offset:2px}
+.section-head{flex-wrap:wrap}
+.bar-row{grid-template-columns:76px minmax(0,1fr) 62px;gap:8px}
+.bar-row>span{font-size:13px}
+#push-enable{border:0;border-radius:12px;padding:13px;background:#1677c8;color:white;font:inherit;font-weight:700;min-height:44px}
+#push-enable:disabled{opacity:.55}
+@media(max-width:360px){h1{font-size:21px}header{gap:8px}.logo{font-size:27px;padding:8px}header p{font-size:13px}.panel{padding:14px}.medal-days{gap:3px}.medal-symbol{font-size:22px}}
+#settings-close,#push-disable{font:inherit;min-height:44px;padding:10px 13px;border:1px solid #b9ccdb;border-radius:12px;background:white;color:#1269b0;margin-bottom:14px;cursor:pointer}
+#push-disable{margin-top:10px;margin-bottom:0}
+#push-disable:disabled{opacity:.55}
+#push-message{overflow-wrap:anywhere;line-height:1.5}
+#push-enable,#push-disable{width:100%}
