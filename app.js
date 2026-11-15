@@ -46,7 +46,7 @@ function tab(name){$('tab-settings').setAttribute('aria-expanded',String(name===
 for(const n of ['day','week']) $(`tab-${n}`).addEventListener('click',()=>tab(n));
 $('tab-settings').addEventListener('click',()=>tab($('settings-view').hidden?'settings':'day'));
 $('settings-close').addEventListener('click',()=>tab('day'));
-function renderAccount(){$('account-state').textContent=auth.token?`Angemeldet als ${auth.deviceName}. Die Anmeldung ist auf diesem Gerät gespeichert.`:'Noch nicht angemeldet. Wähle dein Gerät und gib den Einladungscode ein.';$('register-form').hidden=!!auth.token;refreshPushStatus();}
+function renderAccount(){$('account-state').textContent=auth.token?`Angemeldet als ${auth.deviceName}. Die Anmeldung ist auf diesem Gerät gespeichert.`:'Noch nicht angemeldet. Wähle dein Gerät und gib den Einladungscode ein.';$('register-form').hidden=!!auth.token;$('recovery-form').hidden=!!auth.token;refreshPushStatus();}
 function fillSettings(){for(const [id,key] of [['start-hour','startHour'],['end-hour','endHour'],['minimum-ml','minimumMl'],['daily-goal','dailyGoalMl']]) $(id).value=settings[key];}
 for(let h=0;h<=23;h++){for(const id of ['start-hour','end-hour']){const o=document.createElement('option');o.value=String(h);o.textContent=formatHour(h);$(id).append(o);}}
 async function api(path,options={}){const response=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(auth.token?{'Authorization':`Bearer ${auth.token}`}:{})}});let data;try{data=await response.json();}catch{throw new Error(`Serverantwort ${response.status}`);}if(!data||typeof data!=='object')throw new Error('Ungültige Serverantwort.');if(!response.ok || data.success===false)throw new Error(data.error||`Fehler ${response.status}`);return data;}
@@ -86,8 +86,9 @@ function vapidBytes(key){
 }
 function refreshPushStatus(message){
  const problem=pushProblem();
- $('push-enable').disabled=pushBusy||!!problem||!auth.token;
- $('push-disable').disabled=pushBusy||!auth.token||!settings.notificationsEnabled;
+ // Voraussetzungen beim Antippen erklären, statt eine stumme graue Schaltfläche zu zeigen.
+ $('push-enable').disabled=pushBusy;
+ $('push-disable').disabled=pushBusy;
  if(message){$('push-message').textContent=message;return;}
  if(problem){$('push-message').textContent=problem;return;}
  if(!auth.token){$('push-message').textContent='Bitte zuerst dieses Gerät anmelden.';return;}
@@ -97,7 +98,7 @@ function refreshPushStatus(message){
 }
 $('push-enable').addEventListener('click',async()=>{
  if(pushBusy)return;
- const problem=pushProblem();if(problem||!auth.token){refreshPushStatus(problem||'Bitte zuerst dieses Gerät anmelden.');return;}
+ const problem=pushProblem();if(problem||!auth.token){refreshPushStatus(problem||'Auf dieser Installation wurde keine Geräteanmeldung erkannt. Prüfe oben Mein iPhone und ob du die bisherige App-Adresse verwendest. Vorhandene App und Websitedaten nicht löschen.');return;}
  pushBusy=true;
  try{
   // Vor dem ersten await direkt auf den Fingertipp reagieren (iOS-Berechtigungsregel).
@@ -119,7 +120,9 @@ $('push-enable').addEventListener('click',async()=>{
  finally{pushBusy=false;refreshPushStatus($('push-message').textContent);}
 });
 $('push-disable').addEventListener('click',async()=>{
- if(pushBusy||!auth.token)return;
+ if(pushBusy)return;
+ if(!auth.token){refreshPushStatus('Bitte zuerst unter Mein iPhone prüfen, ob dieses Gerät angemeldet ist. Die vorhandene Anmeldung nicht zurücksetzen.');return;}
+ if(!settings.notificationsEnabled){refreshPushStatus('Benachrichtigungen sind in deinen Geräteeinstellungen bereits deaktiviert.');return;}
  pushBusy=true;refreshPushStatus('Benachrichtigungen werden deaktiviert …');
  try{
   const next={...settings,notificationsEnabled:false};
@@ -128,6 +131,25 @@ $('push-disable').addEventListener('click',async()=>{
   refreshPushStatus('Benachrichtigungen in deinen Geräteeinstellungen deaktiviert. Das Abonnement bleibt gespeichert, bis der Worker eine sichere Abmeldung unterstützt.');
  }catch(error){refreshPushStatus('Deaktivieren fehlgeschlagen: '+error.message);}
  finally{pushBusy=false;refreshPushStatus($('push-message').textContent);}
+});
+$('recovery-form').addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(auth.token){$('recovery-message').textContent='Dieses Gerät ist bereits angemeldet.';return;}
+ const button=event.currentTarget.querySelector('button');button.disabled=true;
+ $('recovery-message').textContent='Zugang wird wiederhergestellt …';
+ try{
+  // Vor dem serverseitigen Tokenwechsel prüfen, ob lokales Speichern möglich ist.
+  const probe='wassertracker-storage-probe';localStorage.setItem(probe,'1');localStorage.removeItem(probe);
+  const result=await api('/recover',{method:'POST',body:JSON.stringify({name:'Henning',recoveryCode:$('recovery-code').value})});
+  if(!result.deviceId||result.deviceName!=='Henning'||!result.token)throw new Error('Unvollständige Antwort vom Worker.');
+  const nextAuth={deviceId:result.deviceId,deviceName:result.deviceName,token:result.token};
+  localStorage.setItem(AUTH_KEY,JSON.stringify(nextAuth));auth=nextAuth;
+  settings={...settings,notificationsEnabled:false};
+  $('recovery-code').value='';renderAccount();
+  $('register-message').textContent='Angemeldet als Henning. Zugang wiederhergestellt. Bitte den Wiederherstellungscode in Cloudflare entfernen und Push neu aktivieren.';
+  await loadRemoteSettings();
+ }catch(error){$('recovery-message').textContent='Wiederherstellung fehlgeschlagen: '+error.message;}
+ finally{button.disabled=false;}
 });
 fillSettings();renderAccount();render();loadRemoteSettings();
 if('serviceWorker' in navigator && window.isSecureContext)ensureWorker().catch(error=>refreshPushStatus('Offline-/Push-Vorbereitung fehlgeschlagen: '+error.message));

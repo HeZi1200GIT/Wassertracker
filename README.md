@@ -69,3 +69,11 @@ Acht automatisierte Prüfungen bestanden: unveränderte alte Einträge/Anmeldung
 Die CSS-Regeln berücksichtigen 320-Pixel-Breite, umbrechende Überschriften und getrennte Statistikspalten. Die tatsächliche visuelle Browserprüfung wurde durch einen Timeout zum lokalen Testserver blockiert; eine Safari-/iPhone-Prüfung ist noch erforderlich. Ein vollständiger Offline-/Update-Test auf dem iPhone steht ebenfalls aus. Siehe `IPHONE-TEST.md`.
 
 iPhone-Voraussetzungen: HTTPS, iOS 16.4 oder neuer, Start über den Home-Bildschirm. Quelle: [Apple/WebKit](https://webkit.org/blog/13878/).
+
+## Korrektur 1.5.1: ausgegraute Push-Schaltflächen
+
+Die Schaltflächen bleiben antippbar und erklären fehlende Voraussetzungen oder eine nicht erkannte Geräteanmeldung. Nur während eines laufenden Vorgangs werden sie gesperrt. Die Ursache einer konkreten fehlgeschlagenen Aktivierung muss anhand der angezeigten Meldung weiter geprüft werden. Zehn automatisierte Prüfungen bestanden; keine echte iPhone-Zustellung bestätigt. Der Fußbereich zeigt Version 1.5.1. Beim Update dieselbe Adresse und Installation beibehalten.
+
+## Version 1.5.2 – Hennings Zugang wiederherstellen
+
+Enthält ein separates Wiederherstellungsformular und einen erweiterten Worker in `cloudflare/worker.mjs`. Vor Einsatz die Anleitung `WIEDERHERSTELLUNG.md` lesen. Cloudflare wurde nicht automatisch verändert. Ein separates einmaliges Admin-Secret erlaubt die Erneuerung von Hennings Token unter Erhalt seiner Geräte-ID und Servereinstellungen. Alte Push-Abonnements von Henning werden entfernt. 13 lokale Tests bestanden. Automatischer Erinnerungsversand bleibt offen.

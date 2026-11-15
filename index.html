@@ -41,6 +41,14 @@
 <input id="invite-code" type="password" autocomplete="off" required>
 <button type="submit">Dieses iPhone anmelden</button>
 </form>
+<form id="recovery-form">
+<h3>Hennings Anmeldung wiederherstellen</h3>
+<p class="hint">Nur nach Freischaltung in Cloudflare. Verwende den separaten Wiederherstellungscode, nicht den Einladungscode. Die bisherige Anmeldung wird ersetzt; Servereinstellungen bleiben erhalten.</p>
+<label for="recovery-code">Einmaliger Wiederherstellungscode</label>
+<input id="recovery-code" type="password" autocomplete="off" minlength="32" maxlength="256" required>
+<button type="submit">Hennings Zugang wiederherstellen</button>
+<p id="recovery-message" role="status"></p>
+</form>
 <p id="register-message" role="status">
 </p>
 </div>
@@ -132,7 +140,7 @@
 <p class="hint">Offene Stunden werden nicht als „Nein“ gezählt.</p>
 </div>
 </section>
-<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.5 · Bestehende Daten bleiben erhalten.</footer>
+<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.5.2 · Bestehende Daten bleiben erhalten.</footer>
 </main>
 <script src="app.js" defer>
 </script>
