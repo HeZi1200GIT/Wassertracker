@@ -43,3 +43,12 @@ In der Wochenstatistik wird jeder der letzten sieben Tage mit einer goldenen Med
 7. Starte WasserTracker über das neue Home-Bildschirm-Symbol. Beim ersten Aufruf ist Internet erforderlich, danach können bereits zwischengespeicherte App-Dateien offline funktionieren.
 
 **Wichtig:** Diese Version sendet keine automatischen stündlichen Erinnerungen. Die Ja/Nein-Eingaben erfolgen manuell. Daten werden nur lokal auf dem jeweiligen Gerät gespeichert und nicht zwischen Windows und iPhone synchronisiert. Entfernen der App oder Löschen der Websitedaten kann die Einträge löschen.
+
+
+## Version 1.4: Geräteanmeldung
+
+Im Tab **Einstellungen** können sich Henning und Franka mit dem Einladungscode auf ihren jeweiligen iPhones registrieren. Die API ist `https://wassertracker-push.henning-zimmer.workers.dev`. Der Code wird nicht im Frontend gespeichert; das erhaltene Geräte-Zugriffstoken liegt im lokalen Browser-Speicher. Die bestehenden Trinkdaten bleiben unter `wassertracker-v1` erhalten und werden nicht zum Server übertragen. Einstellungen werden nach erfolgreicher Anmeldung über `/settings` gespeichert.
+
+**Noch nicht enthalten:** Web-Push-Abonnement, Zeitplan und Versand von Benachrichtigungen. Die Einstellung `notifications_enabled` wird in dieser Version nicht aktiviert.
+
+**Wichtig:** Ein Gerätename kann serverseitig nur einmal registriert werden. Bei Neuinstallation oder Verlust des lokalen Speichers ist eine kontrollierte Wiederherstellung bzw. Zurücksetzung nötig. Der aktuelle Worker benötigt zusätzlich Schutz gegen wiederholte Einladungscode-Versuche.
