@@ -159,4 +159,4 @@ if('serviceWorker' in navigator && window.isSecureContext)ensureWorker().catch(e
 // Erst freigeben, wenn der Wiederherstellungs-Handler und die Oberfläche bereit sind.
 $('recovery-submit').disabled=false;
 $('recovery-message').textContent='Bereit. Den separaten Wiederherstellungscode eingeben und anschließend den Zugang wiederherstellen.';
-$('code-version').textContent='Programmcode 1.5.3 bereit.';
+$('code-version').textContent='Programmcode 1.5.4 bereit.';
