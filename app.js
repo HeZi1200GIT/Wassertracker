@@ -9,7 +9,7 @@ const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate()
 const formatHour = h => `${pad(h)}:00`;
 const today = () => new Date();
 const $ = id => document.getElementById(id);
-const defaults = {startHour:8,endHour:20,minimumMl:200,dailyGoalMl:1500,notificationsEnabled:false};
+const defaults = {startHour:8,endHour:20,minimumMl:200,dailyGoalMl:1500,notificationsEnabled:false,timezone:'Europe/Berlin'};
 function readObject(key) { try { const x=JSON.parse(localStorage.getItem(key)||'null'); return x && typeof x==='object' && !Array.isArray(x) ? x : {}; } catch { return {}; } }
 let entries = readObject(DATA_KEY);
 let settings = {...defaults,...readObject(SETTINGS_KEY)};
@@ -42,17 +42,17 @@ function renderWeek() {
  $('medal-summary').textContent=`${medals} von 7 Tagen mit erreichtem Tagesziel`;$('week-yes').textContent=yes;$('week-no').textContent=no;$('week-open').textContent=open;
 }
 function render(){renderDay();renderWeek();}
-function tab(name){$('tab-settings').setAttribute('aria-expanded',String(name==='settings'));for(const n of ['day','week','settings']){$(`${n}-view`).hidden=n!==name;$(`tab-${n}`).classList.toggle('active',n===name);}}
+function tab(name){if(name==='settings')loadPushStatus();$('tab-settings').setAttribute('aria-expanded',String(name==='settings'));for(const n of ['day','week','settings']){$(`${n}-view`).hidden=n!==name;$(`tab-${n}`).classList.toggle('active',n===name);}}
 for(const n of ['day','week']) $(`tab-${n}`).addEventListener('click',()=>tab(n));
 $('tab-settings').addEventListener('click',()=>tab($('settings-view').hidden?'settings':'day'));
 $('settings-close').addEventListener('click',()=>tab('day'));
 function renderAccount(){$('account-state').textContent=auth.token?`Angemeldet als ${auth.deviceName}. Die Anmeldung ist auf diesem Gerät gespeichert.`:'Noch nicht angemeldet. Wähle dein Gerät und gib den Einladungscode ein.';$('register-form').hidden=!!auth.token;$('recovery-form').hidden=!!auth.token;refreshPushStatus();}
-function fillSettings(){for(const [id,key] of [['start-hour','startHour'],['end-hour','endHour'],['minimum-ml','minimumMl'],['daily-goal','dailyGoalMl']]) $(id).value=settings[key];}
+function fillSettings(){for(const [id,key] of [['start-hour','startHour'],['end-hour','endHour'],['minimum-ml','minimumMl'],['daily-goal','dailyGoalMl']]) $(id).value=settings[key];$('timezone').value=settings.timezone||'Europe/Berlin';}
 for(let h=0;h<=23;h++){for(const id of ['start-hour','end-hour']){const o=document.createElement('option');o.value=String(h);o.textContent=formatHour(h);$(id).append(o);}}
 async function api(path,options={}){const response=await fetch(API+path,{...options,headers:{'Content-Type':'application/json',...(auth.token?{'Authorization':`Bearer ${auth.token}`}:{})}});let data;try{data=await response.json();}catch{throw new Error(`Serverantwort ${response.status}`);}if(!data||typeof data!=='object')throw new Error('Ungültige Serverantwort.');if(!response.ok || data.success===false)throw new Error(data.error||`Fehler ${response.status}`);return data;}
 $('register-form').addEventListener('submit',async e=>{e.preventDefault();const btn=e.currentTarget.querySelector('button');btn.disabled=true;$('register-message').textContent='Anmeldung läuft …';try{const result=await api('/register',{method:'POST',body:JSON.stringify({name:$('device-name').value,inviteCode:$('invite-code').value})});if(!result.deviceId||!result.deviceName||!result.token)throw new Error('Unvollständige Geräteanmeldung vom Server.');const nextAuth={deviceId:result.deviceId,deviceName:result.deviceName,token:result.token};localStorage.setItem(AUTH_KEY,JSON.stringify(nextAuth));auth=nextAuth;$('invite-code').value='';renderAccount();$('register-message').textContent='Anmeldung erfolgreich.';await loadRemoteSettings();}catch(err){$('register-message').textContent=`Anmeldung fehlgeschlagen: ${err.message}`;}finally{btn.disabled=false;}});
-async function loadRemoteSettings(){if(!auth.token)return;try{const result=await api('/settings');if(result.settings || result.startHour !== undefined || result.start_hour !== undefined){const s=result.settings || result;const next={...settings};for(const [remote,local,min,max] of [['start_hour','startHour',0,23],['end_hour','endHour',1,23],['minimum_ml','minimumMl',50,1000],['daily_goal_ml','dailyGoalMl',200,5000]]){const value=s[local] ?? s[remote];if(Number.isInteger(value)&&value>=min&&value<=max)next[local]=value;}if(next.startHour>=next.endHour){next.startHour=settings.startHour;next.endHour=settings.endHour;}const enabled=s.notificationsEnabled ?? s.notifications_enabled;if(typeof enabled==='boolean'||enabled===0||enabled===1)next.notificationsEnabled=!!enabled;settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));fillSettings();render();refreshPushStatus();}}catch(err){$('settings-message').textContent=`Servereinstellungen konnten nicht geladen werden: ${err.message}`;}}
-$('settings-form').addEventListener('submit',async e=>{e.preventDefault();const next={...settings,startHour:Number($('start-hour').value),endHour:Number($('end-hour').value),minimumMl:Number($('minimum-ml').value),dailyGoalMl:Number($('daily-goal').value)};if(next.startHour>=next.endHour){$('settings-message').textContent='Der Beginn muss vor dem Ende liegen.';return;}if(next.minimumMl<50||next.minimumMl>1000||next.dailyGoalMl<200||next.dailyGoalMl>5000){$('settings-message').textContent='Bitte gültige Mengen eingeben.';return;}if(!auth.token){$('settings-message').textContent='Bitte zuerst dieses iPhone anmelden.';return;}try{await api('/settings',{method:'POST',body:JSON.stringify(next)});settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));render();$('settings-message').textContent='Einstellungen gespeichert.';}catch(err){$('settings-message').textContent=`Speichern fehlgeschlagen: ${err.message}`;}});
+async function loadRemoteSettings(){if(!auth.token)return;try{const result=await api('/settings');if(result.settings || result.startHour !== undefined || result.start_hour !== undefined){const s=result.settings || result;const next={...settings};for(const [remote,local,min,max] of [['start_hour','startHour',0,23],['end_hour','endHour',1,23],['minimum_ml','minimumMl',50,1000],['daily_goal_ml','dailyGoalMl',200,5000]]){const value=s[local] ?? s[remote];if(Number.isInteger(value)&&value>=min&&value<=max)next[local]=value;}if(next.startHour>=next.endHour){next.startHour=settings.startHour;next.endHour=settings.endHour;}if(typeof s.timezone==='string'){try{new Intl.DateTimeFormat('de-DE',{timeZone:s.timezone});next.timezone=s.timezone;}catch{}}const enabled=s.notificationsEnabled ?? s.notifications_enabled;if(typeof enabled==='boolean'||enabled===0||enabled===1)next.notificationsEnabled=!!enabled;settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));fillSettings();render();refreshPushStatus();}}catch(err){$('settings-message').textContent=`Servereinstellungen konnten nicht geladen werden: ${err.message}`;}}
+$('settings-form').addEventListener('submit',async e=>{e.preventDefault();const next={...settings,startHour:Number($('start-hour').value),endHour:Number($('end-hour').value),minimumMl:Number($('minimum-ml').value),dailyGoalMl:Number($('daily-goal').value),timezone:$('timezone').value.trim()};if(next.startHour>=next.endHour){$('settings-message').textContent='Der Beginn muss vor dem Ende liegen.';return;}if(next.minimumMl<50||next.minimumMl>1000||next.dailyGoalMl<200||next.dailyGoalMl>5000){$('settings-message').textContent='Bitte gültige Mengen eingeben.';return;}try{if(!next.timezone)throw new Error();new Intl.DateTimeFormat('de-DE',{timeZone:next.timezone});}catch{$('settings-message').textContent='Bitte eine gültige Zeitzone eingeben, zum Beispiel Europe/Berlin.';return;}if(!auth.token){$('settings-message').textContent='Bitte zuerst dieses iPhone anmelden.';return;}try{await api('/settings',{method:'POST',body:JSON.stringify(next)});settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));render();$('settings-message').textContent='Einstellungen gespeichert.';}catch(err){$('settings-message').textContent=`Speichern fehlgeschlagen: ${err.message}`;}});
 
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){render();refreshPushStatus();}});
 
@@ -94,7 +94,7 @@ function refreshPushStatus(message){
  if(!auth.token){$('push-message').textContent='Bitte zuerst dieses Gerät anmelden.';return;}
  if(Notification.permission==='denied'){$('push-message').textContent='Benachrichtigungen sind blockiert. Öffne die iPhone-Einstellungen → Mitteilungen → WasserTracker und erlaube Mitteilungen. Danach die App erneut öffnen.';return;}
  const saved=readObject(PUSH_KEY);
- $('push-message').textContent=Notification.permission!=='granted'?'Benachrichtigungen noch nicht aktiviert.':saved.deviceId===auth.deviceId&&saved.registered&&settings.notificationsEnabled?'Push-Abonnement erfolgreich beim Worker registriert. Automatischer Erinnerungsversand ist serverseitig noch nicht eingerichtet.':settings.notificationsEnabled?'Berechtigung erteilt. Bitte das Push-Abonnement über die Schaltfläche beim Worker registrieren.':'Benachrichtigungen deaktiviert beziehungsweise noch nicht beim Worker aktiviert.';
+ $('push-message').textContent=Notification.permission!=='granted'?'Benachrichtigungen noch nicht aktiviert.':saved.deviceId===auth.deviceId&&saved.registered&&settings.notificationsEnabled?'Push-Abonnement erfolgreich beim Worker registriert. Den Serverstatus und tatsächlichen Empfang bitte unten prüfen.':settings.notificationsEnabled?'Berechtigung erteilt. Bitte das Push-Abonnement über die Schaltfläche beim Worker registrieren.':'Benachrichtigungen deaktiviert beziehungsweise noch nicht beim Worker aktiviert.';
 }
 $('push-enable').addEventListener('click',async()=>{
  if(pushBusy)return;
@@ -115,7 +115,7 @@ $('push-enable').addEventListener('click',async()=>{
   await api('/settings',{method:'POST',body:JSON.stringify(next)});
   settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
   localStorage.setItem(PUSH_KEY,JSON.stringify({deviceId:auth.deviceId,registered:true}));
-  refreshPushStatus('Push-Abonnement erfolgreich registriert. Automatischer Erinnerungsversand ist serverseitig noch nicht eingerichtet.');
+  loadPushStatus();refreshPushStatus('Push-Abonnement erfolgreich registriert. Den Serverstatus und tatsächlichen Empfang bitte unten prüfen.');
  }catch(error){refreshPushStatus('Registrierung fehlgeschlagen: '+error.message);}
  finally{pushBusy=false;refreshPushStatus($('push-message').textContent);}
 });
@@ -126,9 +126,9 @@ $('push-disable').addEventListener('click',async()=>{
  pushBusy=true;refreshPushStatus('Benachrichtigungen werden deaktiviert …');
  try{
   const next={...settings,notificationsEnabled:false};
-  await api('/settings',{method:'POST',body:JSON.stringify(next)});
+  await api('/push/unsubscribe',{method:'POST'});
   settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
-  refreshPushStatus('Benachrichtigungen in deinen Geräteeinstellungen deaktiviert. Das Abonnement bleibt gespeichert, bis der Worker eine sichere Abmeldung unterstützt.');
+  refreshPushStatus('Benachrichtigungen deaktiviert und die Push-Abonnements dieses Geräts am Worker entfernt.');
  }catch(error){refreshPushStatus('Deaktivieren fehlgeschlagen: '+error.message);}
  finally{pushBusy=false;refreshPushStatus($('push-message').textContent);}
 });
@@ -159,4 +159,24 @@ if('serviceWorker' in navigator && window.isSecureContext)ensureWorker().catch(e
 // Erst freigeben, wenn der Wiederherstellungs-Handler und die Oberfläche bereit sind.
 $('recovery-submit').disabled=false;
 $('recovery-message').textContent='Bereit. Den separaten Wiederherstellungscode eingeben und anschließend den Zugang wiederherstellen.';
-$('code-version').textContent='Programmcode 1.5.4 bereit.';
+$('code-version').textContent='Programmcode 1.6 bereit.';
+
+async function loadPushStatus(){
+ if(!auth.token){$('push-server-message').textContent='Serverstatus: Bitte zuerst dieses Gerät anmelden.';return;}
+ $('push-server-message').textContent='Serverstatus wird geprüft …';
+ try{
+  const result=await api('/push/status');
+  if(!result.configured){$('push-server-message').textContent='Versand noch nicht bereit: '+(result.configurationError||'Bitte den Worker auf Version 1.6 aktualisieren.');return;}
+  const heartbeat=result.scheduler?.last_run;
+  const fresh=typeof heartbeat==='number'&&Date.now()-heartbeat<20*60*1000;
+  $('push-server-message').textContent=(result.schedulerEnabled?'Automatischer Versand am Worker freigeschaltet. ':'Automatischer Versand am Worker noch ausgeschaltet. ')+result.subscriptions+' gespeicherte(s) Push-Abonnement(e). '+(heartbeat?'Letzter Zeitplanlauf: '+new Date(heartbeat).toLocaleString('de-DE')+' ('+result.scheduler.status+'). ':'Noch kein Zeitplanlauf festgestellt. ')+(result.schedulerEnabled&&!fresh?'Cron-Konfiguration prüfen. ':'')+(result.lastDelivery?'Letzter Versandversuch: '+result.lastDelivery.status+(result.lastDelivery.http_status?' (HTTP '+result.lastDelivery.http_status+')':'')+'. ':'')+'Ein angenommener Versand bestätigt noch keine Anzeige am iPhone.';
+ }catch(error){$('push-server-message').textContent='Serverstatus nicht abrufbar: '+error.message;}
+}
+$('push-check').addEventListener('click',loadPushStatus);
+$('push-test').addEventListener('click',async()=>{
+ if(!auth.token){$('push-server-message').textContent='Bitte zuerst dieses Gerät anmelden.';return;}
+ $('push-test').disabled=true;$('push-server-message').textContent='Testnachricht wird verschickt …';
+ try{const result=await api('/push/test',{method:'POST'});$('push-server-message').textContent=result.message;}
+ catch(error){$('push-server-message').textContent='Testversand fehlgeschlagen: '+error.message;}
+ finally{$('push-test').disabled=false;}
+});
