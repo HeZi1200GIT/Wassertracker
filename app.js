@@ -135,12 +135,14 @@ $('push-disable').addEventListener('click',async()=>{
 $('recovery-form').addEventListener('submit',async event=>{
  event.preventDefault();
  if(auth.token){$('recovery-message').textContent='Dieses Gerät ist bereits angemeldet.';return;}
+ const code=$('recovery-code').value;
+ if(code.length<32||code.length>256){$('recovery-message').textContent='Bitte den vollständigen Wiederherstellungscode mit 32 bis 256 Zeichen eingeben. Nicht den Einladungscode verwenden.';return;}
  const button=event.currentTarget.querySelector('button');button.disabled=true;
  $('recovery-message').textContent='Zugang wird wiederhergestellt …';
  try{
   // Vor dem serverseitigen Tokenwechsel prüfen, ob lokales Speichern möglich ist.
   const probe='wassertracker-storage-probe';localStorage.setItem(probe,'1');localStorage.removeItem(probe);
-  const result=await api('/recover',{method:'POST',body:JSON.stringify({name:'Henning',recoveryCode:$('recovery-code').value})});
+  const result=await api('/recover',{method:'POST',body:JSON.stringify({name:'Henning',recoveryCode:code})});
   if(!result.deviceId||result.deviceName!=='Henning'||!result.token)throw new Error('Unvollständige Antwort vom Worker.');
   const nextAuth={deviceId:result.deviceId,deviceName:result.deviceName,token:result.token};
   localStorage.setItem(AUTH_KEY,JSON.stringify(nextAuth));auth=nextAuth;
@@ -153,3 +155,8 @@ $('recovery-form').addEventListener('submit',async event=>{
 });
 fillSettings();renderAccount();render();loadRemoteSettings();
 if('serviceWorker' in navigator && window.isSecureContext)ensureWorker().catch(error=>refreshPushStatus('Offline-/Push-Vorbereitung fehlgeschlagen: '+error.message));
+
+// Erst freigeben, wenn der Wiederherstellungs-Handler und die Oberfläche bereit sind.
+$('recovery-submit').disabled=false;
+$('recovery-message').textContent='Bereit. Den separaten Wiederherstellungscode eingeben und anschließend den Zugang wiederherstellen.';
+$('code-version').textContent='Programmcode 1.5.3 bereit.';

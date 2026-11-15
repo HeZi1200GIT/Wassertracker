@@ -1,5 +1,5 @@
-const CACHE = 'wassertracker-v5-recovery-20261115';
-const ASSETS = ['./', './index.html', './style.css', './app.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
+const CACHE = 'wassertracker-v5-recovery-fix-20261115';
+const ASSETS = ['./', './index.html', './style.css?v=1.5.3', './app.js?v=1.5.3', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

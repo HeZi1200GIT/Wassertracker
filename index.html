@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=1.5.3">
 <title>WasserTracker</title>
 </head>
 <body>
@@ -41,13 +41,13 @@
 <input id="invite-code" type="password" autocomplete="off" required>
 <button type="submit">Dieses iPhone anmelden</button>
 </form>
-<form id="recovery-form">
+<form id="recovery-form" onsubmit="return false" novalidate>
 <h3>Hennings Anmeldung wiederherstellen</h3>
 <p class="hint">Nur nach Freischaltung in Cloudflare. Verwende den separaten Wiederherstellungscode, nicht den Einladungscode. Die bisherige Anmeldung wird ersetzt; Servereinstellungen bleiben erhalten.</p>
 <label for="recovery-code">Einmaliger Wiederherstellungscode</label>
 <input id="recovery-code" type="password" autocomplete="off" minlength="32" maxlength="256" required>
-<button type="submit">Hennings Zugang wiederherstellen</button>
-<p id="recovery-message" role="status"></p>
+<button id="recovery-submit" type="submit" disabled>Hennings Zugang wiederherstellen</button>
+<p id="recovery-message" role="status">Die Wiederherstellung wird geladen. Bleibt die Schaltfläche grau, ist der neue Programmcode noch nicht bereit. Bitte die App online erneut öffnen.</p>
 </form>
 <p id="register-message" role="status">
 </p>
@@ -140,9 +140,9 @@
 <p class="hint">Offene Stunden werden nicht als „Nein“ gezählt.</p>
 </div>
 </section>
-<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.5.2 · Bestehende Daten bleiben erhalten.</footer>
+<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.5.3 · Bestehende Daten bleiben erhalten. <span id="code-version">Programmcode noch nicht bereit.</span></footer>
 </main>
-<script src="app.js" defer>
+<script src="app.js?v=1.5.3" defer>
 </script>
 </body>
 </html>
