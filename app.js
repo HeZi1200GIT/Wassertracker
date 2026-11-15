@@ -42,7 +42,7 @@ function renderWeek() {
  $('medal-summary').textContent=`${medals} von 7 Tagen mit erreichtem Tagesziel`;$('week-yes').textContent=yes;$('week-no').textContent=no;$('week-open').textContent=open;
 }
 function render(){renderDay();renderWeek();}
-function tab(name){if(name==='settings')loadPushStatus();$('tab-settings').setAttribute('aria-expanded',String(name==='settings'));for(const n of ['day','week','settings']){$(`${n}-view`).hidden=n!==name;$(`tab-${n}`).classList.toggle('active',n===name);}}
+function tab(name){if(name==='settings'&&$('push-diagnostics').open)loadPushStatus();$('tab-settings').setAttribute('aria-expanded',String(name==='settings'));for(const n of ['day','week','settings']){$(`${n}-view`).hidden=n!==name;$(`tab-${n}`).classList.toggle('active',n===name);}}
 for(const n of ['day','week']) $(`tab-${n}`).addEventListener('click',()=>tab(n));
 $('tab-settings').addEventListener('click',()=>tab($('settings-view').hidden?'settings':'day'));
 $('settings-close').addEventListener('click',()=>tab('day'));
@@ -94,7 +94,7 @@ function refreshPushStatus(message){
  if(!auth.token){$('push-message').textContent='Bitte zuerst dieses Gerät anmelden.';return;}
  if(Notification.permission==='denied'){$('push-message').textContent='Benachrichtigungen sind blockiert. Öffne die iPhone-Einstellungen → Mitteilungen → WasserTracker und erlaube Mitteilungen. Danach die App erneut öffnen.';return;}
  const saved=readObject(PUSH_KEY);
- $('push-message').textContent=Notification.permission!=='granted'?'Benachrichtigungen noch nicht aktiviert.':saved.deviceId===auth.deviceId&&saved.registered&&settings.notificationsEnabled?'Push-Abonnement erfolgreich beim Worker registriert. Den Serverstatus und tatsächlichen Empfang bitte unten prüfen.':settings.notificationsEnabled?'Berechtigung erteilt. Bitte das Push-Abonnement über die Schaltfläche beim Worker registrieren.':'Benachrichtigungen deaktiviert beziehungsweise noch nicht beim Worker aktiviert.';
+ $('push-message').textContent=Notification.permission!=='granted'?'Benachrichtigungen noch nicht aktiviert.':saved.deviceId===auth.deviceId&&saved.registered&&settings.notificationsEnabled?'Push-Abonnement erfolgreich beim Worker registriert. Bei Bedarf kannst du den Empfang im Bereich Diagnose prüfen.':settings.notificationsEnabled?'Berechtigung erteilt. Bitte das Push-Abonnement über die Schaltfläche beim Worker registrieren.':'Benachrichtigungen deaktiviert beziehungsweise noch nicht beim Worker aktiviert.';
 }
 $('push-enable').addEventListener('click',async()=>{
  if(pushBusy)return;
@@ -115,7 +115,7 @@ $('push-enable').addEventListener('click',async()=>{
   await api('/settings',{method:'POST',body:JSON.stringify(next)});
   settings=next;localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings));
   localStorage.setItem(PUSH_KEY,JSON.stringify({deviceId:auth.deviceId,registered:true}));
-  loadPushStatus();refreshPushStatus('Push-Abonnement erfolgreich registriert. Den Serverstatus und tatsächlichen Empfang bitte unten prüfen.');
+  if($('push-diagnostics').open)loadPushStatus();refreshPushStatus('Push-Abonnement erfolgreich registriert. Bei Bedarf kannst du den Empfang im Bereich Diagnose prüfen.');
  }catch(error){refreshPushStatus('Registrierung fehlgeschlagen: '+error.message);}
  finally{pushBusy=false;refreshPushStatus($('push-message').textContent);}
 });
@@ -159,7 +159,7 @@ if('serviceWorker' in navigator && window.isSecureContext)ensureWorker().catch(e
 // Erst freigeben, wenn der Wiederherstellungs-Handler und die Oberfläche bereit sind.
 $('recovery-submit').disabled=false;
 $('recovery-message').textContent='Bereit. Den separaten Wiederherstellungscode eingeben und anschließend den Zugang wiederherstellen.';
-$('code-version').textContent='Programmcode 1.6 bereit.';
+$('code-version').textContent='Programmcode 1.6.3 bereit.';
 
 async function loadPushStatus(){
  if(!auth.token){$('push-server-message').textContent='Serverstatus: Bitte zuerst dieses Gerät anmelden.';return;}
@@ -179,4 +179,8 @@ $('push-test').addEventListener('click',async()=>{
  try{const result=await api('/push/test',{method:'POST'});$('push-server-message').textContent=result.message;}
  catch(error){$('push-server-message').textContent='Testversand fehlgeschlagen: '+error.message;}
  finally{$('push-test').disabled=false;}
+});
+
+$('push-diagnostics').addEventListener('toggle',()=>{
+ if($('push-diagnostics').open)loadPushStatus();
 });

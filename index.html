@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon-1.5.4.png" sizes="180x180">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg?v=1.6" type="image/svg+xml">
-<link rel="stylesheet" href="style.css?v=1.6">
+<link rel="stylesheet" href="style.css?v=1.6.3">
 <title>WasserTracker</title>
 </head>
 <body>
@@ -80,10 +80,13 @@
 <p id="push-message" role="status">Benachrichtigungen noch nicht aktiviert.</p>
 <button id="push-enable" type="button">Benachrichtigungen aktivieren</button>
 <button id="push-disable" type="button">Benachrichtigungen deaktivieren</button>
-<p class="hint">Stündliche Erinnerungen benötigen den neuen Worker, gültige VAPID-Schlüssel und einen eingerichteten Cloudflare-Zeitplan. Teste den Empfang zuerst mit einer Testnachricht.</p>
+<details id="push-diagnostics" class="diagnostics">
+<summary>Diagnose</summary>
+<p class="hint">Bei Empfangsproblemen kannst du hier den Serverstatus prüfen oder eine Testnachricht senden.</p>
 <p id="push-server-message" role="status">Der Serverstatus wurde noch nicht geprüft.</p>
 <button id="push-check" type="button">Serverstatus prüfen</button>
 <button id="push-test" type="button">Testnachricht senden</button>
+</details>
 </div>
 </section>
 <section id="day-view">
@@ -146,9 +149,9 @@
 <p class="hint">Offene Stunden werden nicht als „Nein“ gezählt.</p>
 </div>
 </section>
-<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.6 · Bestehende Daten bleiben erhalten. <span id="code-version">Programmcode noch nicht bereit.</span></footer>
+<footer>Deine Trinkdaten bleiben auf diesem Gerät. Die Anmeldung überträgt keine Trinkdaten. Version 1.6.3 · Bestehende Daten bleiben erhalten. <span id="code-version">Programmcode noch nicht bereit.</span></footer>
 </main>
-<script src="app.js?v=1.6" defer>
+<script src="app.js?v=1.6.3" defer>
 </script>
 </body>
 </html>

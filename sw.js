@@ -1,5 +1,5 @@
-const CACHE = 'wassertracker-v6-push-20261115';
-const ASSETS = ['./', './index.html', './style.css?v=1.6', './app.js?v=1.6', './manifest.webmanifest', './icon.svg?v=1.6', './icon-192.png?v=1.6', './icon-512.png?v=1.6', './apple-touch-icon-1.5.4.png'];
+const CACHE = 'wassertracker-v6-diagnosis-163-20261115';
+const ASSETS = ['./', './index.html', './style.css?v=1.6.3', './app.js?v=1.6.3', './manifest.webmanifest', './icon.svg?v=1.6', './icon-192.png?v=1.6', './icon-512.png?v=1.6', './apple-touch-icon-1.5.4.png'];
 self.addEventListener('install', event => {
  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
