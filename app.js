@@ -261,7 +261,7 @@ if('serviceWorker' in navigator && window.isSecureContext)ensureWorker().catch(e
 // Erst freigeben, wenn der Wiederherstellungs-Handler und die Oberfläche bereit sind.
 $('recovery-submit').disabled=false;
 $('recovery-message').textContent='Bereit. Den separaten Wiederherstellungscode eingeben und anschließend den Zugang wiederherstellen.';
-$('code-version').textContent='Programmcode 1.7 bereit.';
+$('code-version').textContent='Programmcode 1.7.1 bereit.';
 
 async function loadPushStatus(){
  if(!auth.token){$('push-server-message').textContent='Serverstatus: Bitte zuerst dieses Gerät anmelden.';return;}

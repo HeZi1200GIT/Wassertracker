@@ -1,5 +1,5 @@
-const CACHE = 'wassertracker-v7-calendar-20261115';
-const ASSETS = ['./', './index.html', './style.css?v=1.7', './app.js?v=1.7', './manifest.webmanifest', './icon.svg?v=1.6', './icon-192.png?v=1.6', './icon-512.png?v=1.6', './apple-touch-icon-1.5.4.png'];
+const CACHE = 'wassertracker-v7-reminders-171-20261118';
+const ASSETS = ['./', './index.html', './style.css?v=1.7', './app.js?v=1.7.1', './manifest.webmanifest', './icon.svg?v=1.6', './icon-192.png?v=1.6', './icon-512.png?v=1.6', './apple-touch-icon-1.5.4.png'];
 self.addEventListener('install', event => {
  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
